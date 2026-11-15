@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     HOST: str = "0.0.0.0"
     PORT: int = 8000
+    # Shared secret sent by clients in the X-API-Key header (required in PRODUCTION)
+    API_KEY: str = ""
 
     # CORS settings
     CORS_ORIGINS: List[str] = [

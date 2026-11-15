@@ -11,6 +11,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:6701',
     trace: 'on-first-retry',
+    // Sent with API requests when the backend has API_KEY set
+    ...(process.env.API_KEY && { extraHTTPHeaders: { 'X-API-Key': process.env.API_KEY } }),
   },
 
   projects: [

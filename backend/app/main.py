@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 # Load environment variables from the backend directory before reading settings
 dotenv.load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
+from .core.auth import API_KEY_HEADER, require_api_key  # noqa: E402
 from .core.config import Base, engine, settings  # noqa: E402
 from .core.logging import configure_logging  # noqa: E402
 from .dependencies import get_audio_service, get_embedding_service  # noqa: E402
@@ -28,6 +29,11 @@ async def lifespan(app: FastAPI):
         # Test/dev convenience only; schema is managed by Alembic migrations.
         Base.metadata.create_all(bind=engine)
         logger.info("DB_AUTO_CREATE enabled: database tables created/verified")
+    if not settings.API_KEY:
+        if settings.ENV == "PRODUCTION":
+            logger.error("API_KEY is not set: every API request will be rejected")
+        else:
+            logger.warning("API_KEY is not set: API authentication is disabled")
     yield
 
 
@@ -36,6 +42,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
     lifespan=lifespan,
+    dependencies=[Depends(require_api_key)],
 )
 
 app.add_middleware(
@@ -43,7 +50,7 @@ app.add_middleware(
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", API_KEY_HEADER],
 )
 
 
