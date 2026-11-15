@@ -65,7 +65,7 @@ Form fields:
 Behavior:
 
 - Rejects unsupported file types.
-- Rejects files above backend `MAX_UPLOAD_SIZE`.
+- Rejects files above backend `MAX_UPLOAD_SIZE` with `413`; the upload is read in 1 MiB chunks and stops as soon as the limit is passed, so oversized files are never fully loaded into memory.
 - Saves the file to local upload storage.
 - Extracts text synchronously.
 - Creates a `documents` row with extraction status.

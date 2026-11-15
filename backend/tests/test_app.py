@@ -111,3 +111,31 @@ def test_summary_mutations_return_updated_summary(client, upload):
     assert regenerated.json()["message"] == "Summary regenerated successfully"
     assert regenerated.json()["approval_status"] == "pending"
     assert regenerated.json()["custom_name"] == "Renamed"
+
+
+def test_upload_over_size_limit_returns_413(client, monkeypatch):
+    from starlette.datastructures import UploadFile
+
+    from app.core.config import settings
+    from app.routers import documents
+
+    monkeypatch.setattr(settings, "MAX_UPLOAD_SIZE", 2 * 1024 * 1024)
+    reads = []
+    original_read = UploadFile.read
+
+    async def tracking_read(self, size=-1):
+        reads.append(size)
+        return await original_read(self, size)
+
+    monkeypatch.setattr(UploadFile, "read", tracking_read)
+
+    oversized = b"a" * (5 * 1024 * 1024)
+    response = client.post(
+        "/documents/upload", files={"file": ("big.txt", oversized, "text/plain")}
+    )
+
+    assert response.status_code == 413
+    assert response.json()["detail"] == "File too large. Max 2 MB."
+    assert reads and all(0 < size <= documents.UPLOAD_CHUNK_SIZE for size in reads)
+    assert len(reads) == 3
+    assert client.get("/documents").json()["total"] == 0
