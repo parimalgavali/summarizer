@@ -31,10 +31,26 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Documents"])
 
 ALLOWED_EXT = {".pdf", ".docx", ".txt"}
+UPLOAD_CHUNK_SIZE = 1024 * 1024
 
 
 def _ext_ok(name: str) -> bool:
     return any(name.lower().endswith(ext) for ext in ALLOWED_EXT)
+
+
+async def _read_limited(file: UploadFile, max_bytes: int) -> bytes:
+    """Read the upload in chunks, stopping with 413 once it exceeds max_bytes."""
+    chunks: list[bytes] = []
+    total = 0
+    while chunk := await file.read(UPLOAD_CHUNK_SIZE):
+        total += len(chunk)
+        if total > max_bytes:
+            max_mb = max_bytes // (1024 * 1024)
+            raise HTTPException(
+                status_code=413, detail=f"File too large. Max {max_mb} MB."
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
 async def _index_document(
@@ -77,11 +93,7 @@ async def upload_document(
             status_code=400, detail="Unsupported file type. Allowed: PDF, DOCX, TXT."
         )
 
-    content = await file.read()
-    max_bytes = settings.MAX_UPLOAD_SIZE
-    if len(content) > max_bytes:
-        max_mb = max_bytes // (1024 * 1024)
-        raise HTTPException(status_code=413, detail=f"File too large. Max {max_mb} MB.")
+    content = await _read_limited(file, settings.MAX_UPLOAD_SIZE)
 
     doc_id, path = await run_in_threadpool(save_upload, file.filename, content)
 
