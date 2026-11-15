@@ -37,6 +37,12 @@ class AudioService:
     def generate_audio(self, text: str, output_path: str) -> tuple[float, int, float]:
         start_time = time.time()
 
+        if len(text) > settings.TTS_MAX_INPUT_CHARS:
+            raise ValueError(
+                f"Text is too long for audio ({len(text)} characters, "
+                f"limit {settings.TTS_MAX_INPUT_CHARS})"
+            )
+
         if settings.ENV == "TEST":
             with open(output_path, "wb") as f:
                 f.write(b"FORM" if self.audio_format == "aiff" else b"\xff\xf3\x44\xc4")
@@ -52,8 +58,10 @@ class AudioService:
     def generate_audio_with_macos_say(
         self, text: str, output_path: str, start_time: float
     ) -> tuple[float, int, float]:
+        # Text goes on stdin so a leading "-" is never parsed as a `say` option.
         subprocess.run(
-            ["say", "-v", self.macos_voice, "-o", output_path, text],
+            ["say", "-v", self.macos_voice, "-o", output_path, "-f", "-"],
+            input=text,
             check=True,
             capture_output=True,
             text=True,

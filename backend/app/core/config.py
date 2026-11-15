@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     # Text-to-speech settings
     TTS_PROVIDER: Literal["macos_say", "openai"] = "macos_say"
     MACOS_SAY_VOICE: str = "Samantha"
+    TTS_MAX_INPUT_CHARS: int = 20000
 
     # Text extraction settings
     EXTRACT_IMAGES_FROM_PDF: bool = False

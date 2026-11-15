@@ -48,6 +48,7 @@ MACOS_SAY_VOICE=Samantha
 - `DATABASE_URL` is required; there is no default.
 - `DEBUG` defaults to `False`.
 - `LOG_LEVEL` (default `INFO`) controls application logging.
+- `TTS_MAX_INPUT_CHARS` (default `20000`) caps the text sent to text-to-speech; longer summaries are rejected. macOS `say` reads the text from stdin (`say -f -`), never from argv, so summary text can't be parsed as a `say` option.
 - `DB_AUTO_CREATE=true` runs `Base.metadata.create_all` on startup. Test/dev convenience only; it does not migrate existing tables.
 
 ## Migrations
