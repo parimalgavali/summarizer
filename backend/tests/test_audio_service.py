@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 from app.core.config import settings
-from app.services.audio import AudioService
+from app.services.audio import AudioService, TextTooLongError
 
 INJECTED = "--input-file=/etc/hosts"
 
@@ -31,6 +31,6 @@ def test_macos_say_passes_text_on_stdin_not_argv(say_service, tmp_path):
 def test_tts_rejects_text_over_limit(say_service, tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "TTS_MAX_INPUT_CHARS", 10)
     with mock.patch.object(subprocess, "run") as run:
-        with pytest.raises(ValueError, match="too long"):
+        with pytest.raises(TextTooLongError, match="too long"):
             say_service.generate_audio("x" * 11, str(tmp_path / "out.aiff"))
     run.assert_not_called()

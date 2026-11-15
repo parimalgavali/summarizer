@@ -13,7 +13,7 @@ from ..core.config import get_db, settings
 from ..dependencies import get_audio_service, get_summarization_service
 from ..models import AudioResponse
 from ..models.database import Audio, Document, Summary
-from ..services.audio import AudioService
+from ..services.audio import AudioService, TextTooLongError
 from ..services.summarization import SummarizationService
 from .common import (
     Pagination,
@@ -117,6 +117,9 @@ async def generate_audio(
             created_at=datetime.utcnow().isoformat(),
         )
 
+    except TextTooLongError as e:
+        db.rollback()
+        raise HTTPException(status_code=413, detail=str(e))
     except Exception as e:
         db.rollback()
         logger.exception("Audio generation failed for summary %s", summary_id)
@@ -225,6 +228,9 @@ async def generate_audio_from_document(
             "created_at": datetime.utcnow().isoformat(),
         }
 
+    except TextTooLongError as e:
+        db.rollback()
+        raise HTTPException(status_code=413, detail=str(e))
     except Exception as e:
         db.rollback()
         logger.exception("Audio generation from document %s failed", document_id)

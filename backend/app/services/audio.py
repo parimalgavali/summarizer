@@ -22,6 +22,10 @@ except ImportError:
     MP3 = None
 
 
+class TextTooLongError(ValueError):
+    pass
+
+
 class AudioService:
     def __init__(self):
         self.provider = settings.TTS_PROVIDER
@@ -38,7 +42,7 @@ class AudioService:
         start_time = time.time()
 
         if len(text) > settings.TTS_MAX_INPUT_CHARS:
-            raise ValueError(
+            raise TextTooLongError(
                 f"Text is too long for audio ({len(text)} characters, "
                 f"limit {settings.TTS_MAX_INPUT_CHARS})"
             )

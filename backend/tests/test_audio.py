@@ -48,3 +48,15 @@ def test_delete_document_removes_audio(client, upload):
     assert client.delete(f"/documents/{document_id}").status_code == 200
     assert client.get("/audio-list").json()["total"] == 0
     assert client.get("/summary-list").json()["total"] == 0
+
+
+def test_generate_audio_rejects_oversized_summary_with_413(client, upload, monkeypatch):
+    from app.core.config import settings
+
+    summary_id = _generate_audio(client, upload())["summary_id"]
+    monkeypatch.setattr(settings, "TTS_MAX_INPUT_CHARS", 5)
+
+    response = client.post(f"/summaries/{summary_id}/generate-audio")
+
+    assert response.status_code == 413
+    assert "too long" in response.json()["detail"]
