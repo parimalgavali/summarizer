@@ -50,6 +50,8 @@ This keeps the app approachable while still showing production-oriented AI featu
 
 The default local API base is `http://localhost:8000`. Deployments can override it with `VITE_API_BASE`.
 
+When the backend has `API_KEY` set, `api.ts` sends the key saved in `localStorage` as `X-API-Key` on every request. On a `401` it clears the saved key and `AccessKeyGate` (mounted in `main.tsx`) asks for it, then refetches all queries. The key is never baked into the build.
+
 For local development, set:
 
 ```bash

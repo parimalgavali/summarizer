@@ -31,6 +31,12 @@ class PhaseOneTwoStaticChecks(unittest.TestCase):
         self.assertIn("allow_origins=settings.CORS_ORIGINS", main)
         self.assertNotIn('allow_origins=["*"]', main)
 
+    def test_every_route_requires_api_key(self):
+        main = (ROOT / "backend/app/main.py").read_text(encoding="utf-8")
+
+        self.assertIn("dependencies=[Depends(require_api_key)]", main)
+        self.assertIn("API_KEY_HEADER", main)
+
     def test_backend_exposes_audio_filter_endpoint_used_by_frontend(self):
         main = backend_route_sources()
         api = (ROOT / "frontend/src/lib/api.ts").read_text(encoding="utf-8")

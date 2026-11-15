@@ -119,6 +119,7 @@ pipelines:
               - echo "DATABASE_URL=$DATABASE_URL" >> .env
               - echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> .env
               - echo "HF_API_KEY=$HF_API_KEY" >> .env
+              - echo "API_KEY=$API_KEY" >> .env
               - echo "APP_VERSION=${BITBUCKET_COMMIT:0:7}" >> .env
               
               # 2. Copy the .env file to the server using SCP

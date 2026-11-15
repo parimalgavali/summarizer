@@ -46,6 +46,7 @@ MACOS_SAY_VOICE=Samantha
 ## Configuration
 
 - `DATABASE_URL` is required; there is no default.
+- `API_KEY` is the shared secret every request must send as `X-API-Key` (`app/core/auth.py`, applied app-wide in `main.py`). Required when `ENV=PRODUCTION`; without it the API answers `503`. Optional in `DEVELOPMENT`/`TEST`.
 - `DEBUG` defaults to `False`.
 - `LOG_LEVEL` (default `INFO`) controls application logging.
 - `DB_AUTO_CREATE=true` runs `Base.metadata.create_all` on startup. Test/dev convenience only; it does not migrate existing tables.

@@ -2,6 +2,28 @@ import axios from "axios";
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
+const API_KEY_STORAGE = "apiKey";
+/** Fired when the backend rejects the stored access key (HTTP 401). */
+export const UNAUTHORIZED_EVENT = "summarizer:unauthorized";
+
+export function setApiKey(key: string) {
+  localStorage.setItem(API_KEY_STORAGE, key);
+}
+
+axios.interceptors.request.use((config) => {
+  const key = localStorage.getItem(API_KEY_STORAGE);
+  if (key) config.headers.set("X-API-Key", key);
+  return config;
+});
+
+axios.interceptors.response.use(undefined, (error) => {
+  if (axios.isAxiosError(error) && error.response?.status === 401) {
+    localStorage.removeItem(API_KEY_STORAGE);
+    window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  }
+  return Promise.reject(error);
+});
+
 export type DocStatus = "uploaded" | "processing" | "text_ready" | "extraction_failed" | "summary_ready";
 
 export interface UploadResponse {

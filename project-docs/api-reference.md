@@ -2,6 +2,10 @@
 
 Base URL in local development is usually `http://localhost:8000`.
 
+## Authentication
+
+Every route requires an `X-API-Key` header matching the backend `API_KEY` setting. A missing or wrong key returns `401` with `{"detail": "Invalid or missing API key"}`. If `API_KEY` is empty, authentication is off in `DEVELOPMENT`/`TEST`, and every request returns `503` in `PRODUCTION` (the default `ENV`). `/docs` and `/openapi.json` stay public.
+
 ## Errors
 
 Failures use a non-2xx status with a JSON body of the form `{"detail": ...}`. Unhandled exceptions return `500` with `{"detail": "Internal server error"}`; details are logged server-side.
